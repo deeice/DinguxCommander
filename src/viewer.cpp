@@ -99,6 +99,11 @@ const bool CViewer::keyPress(const SDL_Event &p_event)
     bool l_ret(false);
     switch (p_event.key.keysym.sym)
     {
+#if defined(PLATFORM_ZIPIT)
+        /* Let ESCAPE and TAB keys also leave popup dialogs. */
+        case MYKEY_SYSTEM:
+        case MYKEY_OPERATION:
+#endif
         case MYKEY_PARENT:
             m_retVal = -1;
             l_ret = true;

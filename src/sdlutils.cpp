@@ -13,6 +13,13 @@ SDL_Surface *SDL_utils::loadImage(const std::string &p_filename)
     SDL_Surface* l_img2 = NULL;
     if(l_img != NULL)
     {
+#if defined(GMENU2X_RESOURCES)
+	// Gmenu2x does not use MAGIC PINK transparency for icons.
+        // Optimize the image
+        l_img2 = SDL_DisplayFormatAlpha(l_img);
+        // Free the first image
+        SDL_FreeSurface(l_img);
+#else      
         // Optimize the image
         l_img2 = SDL_DisplayFormat(l_img);
         // Free the first image
@@ -20,6 +27,7 @@ SDL_Surface *SDL_utils::loadImage(const std::string &p_filename)
         // Set color key
         if (l_img2 != NULL)
             SDL_SetColorKey(l_img2, SDL_SRCCOLORKEY, SDL_MapRGB(l_img2->format, COLOR_KEY));
+#endif
     }
     // Check errors
     if (l_img2 == NULL)
@@ -49,7 +57,12 @@ TTF_Font *SDL_utils::loadFont(const std::string &p_font, const int p_size)
 
 SDL_Surface *SDL_utils::renderText(TTF_Font *p_font, const std::string &p_text, const SDL_Color &p_fg)
 {
+#if defined(PLATFORM_ZIPIT)
+    /* Antialias when we have a decent font. */
+    return TTF_RenderUTF8_Blended(p_font, p_text.c_str(), p_fg);
+#else
     return TTF_RenderUTF8_Solid(p_font, p_text.c_str(), p_fg);
+#endif
 }
 
 void SDL_utils::applyText(const Sint16 p_x, const Sint16 p_y, SDL_Surface* p_destination, TTF_Font *p_font, const std::string &p_text, const SDL_Color &p_fg, const T_TEXT_ALIGN p_align)

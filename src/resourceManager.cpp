@@ -14,6 +14,16 @@ CResourceManager::CResourceManager(void) :
     m_font(NULL)
 {
     // Load images
+#if defined(GMENU2X_RESOURCES)
+    m_surfaces[T_SURFACE_BG] = SDL_utils::loadImage("skins/Default/imgs/background.png");
+    m_surfaces[T_SURFACE_FILE] = SDL_utils::loadImage("skins/Default/imgs/file.png");
+    m_surfaces[T_SURFACE_FOLDER] = SDL_utils::loadImage("skins/Default/imgs/folder.png");
+    m_surfaces[T_SURFACE_UP] = SDL_utils::loadImage("skins/Default/imgs/go-up.png");
+    m_surfaces[T_SURFACE_CURSOR1] = SDL_utils::createImage(159, 15, SDL_MapRGB(Globals::g_screen->format, COLOR_CURSOR_1));
+    m_surfaces[T_SURFACE_CURSOR2] = SDL_utils::createImage(159, 15, SDL_MapRGB(Globals::g_screen->format, COLOR_CURSOR_2));
+    // Load font
+    m_font = SDL_utils::loadFont("skins/Default/font.ttf", 8);
+#else  
     m_surfaces[T_SURFACE_BG] = SDL_utils::loadImage(RESDIR "/background.png");
     m_surfaces[T_SURFACE_FILE] = SDL_utils::loadImage(RESDIR "/file.png");
     m_surfaces[T_SURFACE_FOLDER] = SDL_utils::loadImage(RESDIR "/folder.png");
@@ -21,7 +31,13 @@ CResourceManager::CResourceManager(void) :
     m_surfaces[T_SURFACE_CURSOR1] = SDL_utils::createImage(159, 15, SDL_MapRGB(Globals::g_screen->format, COLOR_CURSOR_1));
     m_surfaces[T_SURFACE_CURSOR2] = SDL_utils::createImage(159, 15, SDL_MapRGB(Globals::g_screen->format, COLOR_CURSOR_2));
     // Load font
+#if defined(PLATFORM_ZIPIT)
+    /* Generic Font File. */
+    m_font = SDL_utils::loadFont(RESDIR "/font.ttf", 8);
+#else
     m_font = SDL_utils::loadFont(RESDIR "/Fiery_Turk.ttf", 8);
+#endif
+#endif
 }
 
 void CResourceManager::sdlCleanup(void)
