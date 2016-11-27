@@ -63,6 +63,22 @@
 #define MYKEY_TRANSFER      SDLK_RETURN       // START
 #define PATH_DEFAULT        "/"
 #define FILE_SYSTEM         "/dev/mmcblk0p1"
+#elif defined(PLATFORM_ZIPIT)
+// Keys for GCW Zero
+#define MYKEY_UP            SDLK_UP
+#define MYKEY_RIGHT         SDLK_RIGHT
+#define MYKEY_DOWN          SDLK_DOWN
+#define MYKEY_LEFT          SDLK_LEFT
+#define MYKEY_SYSTEM        SDLK_ESCAPE
+#define MYKEY_PAGEUP        SDLK_PAGEUP
+#define MYKEY_PAGEDOWN      SDLK_PAGEDOWN
+#define MYKEY_OPEN          SDLK_RETURN
+#define MYKEY_PARENT        SDLK_BACKSPACE
+#define MYKEY_OPERATION     SDLK_TAB
+#define MYKEY_SELECT        SDLK_SPACE
+#define MYKEY_TRANSFER      SDLK_p
+#define PATH_DEFAULT        "/"
+#define FILE_SYSTEM         "/dev/mmcblk0p1"
 #else
 // Keys for PC keyboard
 #define MYKEY_UP            SDLK_UP

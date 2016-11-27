@@ -37,12 +37,16 @@ class CKeyboard : public CWindow
     // Draw
     virtual void render(const bool p_focus) const;
 
+#if defined(PLATFORM_ZIPIT)
+    /* Remove virtual kbd */
+#else    
     // Move cursor
     const bool moveCursorUp(const bool p_loop);
     const bool moveCursorDown(const bool p_loop);
     const bool moveCursorLeft(const bool p_loop);
     const bool moveCursorRight(const bool p_loop);
-
+#endif
+    
     // Type a letter
     const bool type(const std::string &p_text = "");
 
@@ -52,25 +56,37 @@ class CKeyboard : public CWindow
     // UTF8 character or not
     const bool utf8Code(const unsigned char p_c) const;
 
+#if defined(PLATFORM_ZIPIT)
+    /* Remove virtual kbd */
+#else    
     // The image representing the keyboard
     SDL_Surface *m_imageKeyboard;
-
+#endif
+    
     // The image representing the input text field
     SDL_Surface *m_textField;
 
     // The input text
     std::string m_inputText;
 
+#if defined(PLATFORM_ZIPIT)
+    /* Remove virtual kbd */
+#else    
     // The cursor index
     unsigned char m_selected;
+#endif    
 
     // The footer
     SDL_Surface *m_footer;
 
+#if defined(PLATFORM_ZIPIT)
+    /* Remove virtual kbd */
+#else    
     // Key sets
     std::string m_keySets[NB_KEY_SETS];
     unsigned char m_keySet;
-
+#endif
+    
     // Pointers to resources
     TTF_Font *m_font;
 };

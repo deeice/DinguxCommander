@@ -11,14 +11,25 @@
 
 CKeyboard::CKeyboard(const std::string &p_inputText):
     CWindow(),
+#if defined(PLATFORM_ZIPIT)
+    m_textField(NULL),
+    m_inputText(p_inputText),
+    m_footer(NULL),
+#else    
     m_imageKeyboard(NULL),
     m_textField(NULL),
     m_inputText(p_inputText),
     m_selected(0),
     m_footer(NULL),
     m_keySet(0),
+#endif
     m_font(CResourceManager::instance().getFont())
 {
+#if defined(PLATFORM_ZIPIT)
+    SDL_EnableUNICODE(SDL_ENABLE);
+    /* Remove virtual kbd */
+    SDL_Rect l_rect;
+#else
     // Key sets
     m_keySets[0] = "abcdefghijklmnopqrstuvwxyz0123456789., ";
     m_keySets[1] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789., ";
@@ -67,20 +78,28 @@ CKeyboard::CKeyboard(const std::string &p_inputText):
         SDL_FillRect(m_imageKeyboard, &l_rect, SDL_MapRGB(m_imageKeyboard->format, COLOR_BG_1));
         l_rect.x = 134;
         SDL_FillRect(m_imageKeyboard, &l_rect, SDL_MapRGB(m_imageKeyboard->format, COLOR_BG_1));
+#endif
         // Create text field image
         m_textField = SDL_utils::createImage(265, 19, SDL_MapRGB(Globals::g_screen->format, COLOR_BORDER));
         l_rect.x = 2;
         l_rect.y = 2;
         l_rect.w = 261;
         l_rect.h = 15;
+#if defined(PLATFORM_ZIPIT)
+        /* Remove virtual kbd */
+        SDL_FillRect(m_textField, &l_rect, SDL_MapRGB(m_textField->format, COLOR_BG_1));
+#else
         SDL_FillRect(m_textField, &l_rect, SDL_MapRGB(m_imageKeyboard->format, COLOR_BG_1));
     }
+#endif
     // Create footer
     m_footer = SDL_utils::createImage(SCREEN_WIDTH, H_FOOTER, SDL_MapRGB(Globals::g_screen->format, COLOR_BORDER));
 #if defined(PLATFORM_DINGOO)
     SDL_utils::applyText(SCREEN_WIDTH >> 1, 1, m_footer, m_font, "A-Input   B-Cancel   START-OK   L/R-Change   Y-Backspace   X-Space", Globals::g_colorTextTitle, SDL_utils::T_TEXT_ALIGN_CENTER);
 #elif defined(PLATFORM_GCW0)
     SDL_utils::applyText(SCREEN_WIDTH >> 1, 1, m_footer, m_font, "A-Input   B-Cancel   START-OK   L/R-Change   X-Backspace   Y-Space", Globals::g_colorTextTitle, SDL_utils::T_TEXT_ALIGN_CENTER);
+#elif defined(PLATFORM_ZIPIT)
+    SDL_utils::applyText(SCREEN_WIDTH >> 1, 1, m_footer, m_font, "Press Esc to Cancel.", Globals::g_colorTextTitle, SDL_utils::T_TEXT_ALIGN_CENTER);
 #else
     SDL_utils::applyText(SCREEN_WIDTH >> 1, 1, m_footer, m_font, "Ret-Input  Bsp-Cancel  w-OK  PgU/PgD-Change  q-Backspace  a-Space ", Globals::g_colorTextTitle, SDL_utils::T_TEXT_ALIGN_CENTER);
 #endif
@@ -89,11 +108,16 @@ CKeyboard::CKeyboard(const std::string &p_inputText):
 CKeyboard::~CKeyboard(void)
 {
     // Free surfaces
+#if defined(PLATFORM_ZIPIT)
+    SDL_EnableUNICODE(SDL_DISABLE);
+    /* Remove virtual kbd */
+#else
     if (m_imageKeyboard != NULL)
     {
         SDL_FreeSurface(m_imageKeyboard);
         m_imageKeyboard = NULL;
     }
+#endif
     if (m_textField != NULL)
     {
         SDL_FreeSurface(m_textField);
@@ -128,6 +152,9 @@ void CKeyboard::render(const bool p_focus) const
         else
             SDL_utils::applySurface(KB_X + 5, FIELD_Y + 4, l_surfaceTmp, Globals::g_screen);
     }
+#if defined(PLATFORM_ZIPIT)
+    /* Remove virtual kbd */
+#else
     // Draw keyboard
     SDL_utils::applySurface(KB_X, KB_Y, m_imageKeyboard, Globals::g_screen);
     // Cursor
@@ -191,6 +218,7 @@ void CKeyboard::render(const bool p_focus) const
     // Buttons text
     SDL_utils::applyText(KB_X + 67, KB_Y + 67, Globals::g_screen, m_font, "Cancel", Globals::g_colorTextNormal, SDL_utils::T_TEXT_ALIGN_CENTER);
     SDL_utils::applyText(KB_X + 197, KB_Y + 67, Globals::g_screen, m_font, "OK", Globals::g_colorTextNormal, SDL_utils::T_TEXT_ALIGN_CENTER);
+#endif
     // Draw footer
     SDL_utils::applySurface(0, 227, m_footer, Globals::g_screen);
 }
@@ -201,6 +229,31 @@ const bool CKeyboard::keyPress(const SDL_Event &p_event)
     bool l_ret(false);
     switch (p_event.key.keysym.sym)
     {
+#if defined(PLATFORM_ZIPIT)
+        /* Remove virtual kbd */
+        case SDLK_ESCAPE: 
+            // B => Cancel
+            m_retVal = -1;
+            l_ret = true;
+            break;
+        case SDLK_RETURN: 
+	    // Button OK
+	    m_retVal = 1;
+	    l_ret = true;
+            break;
+        case SDLK_BACKSPACE:
+            // Y => Backspace
+            l_ret = backspace();
+            break;
+        default:
+	    std::string l_text("");
+	    if (p_event.key.keysym.unicode != 0)
+	    {
+	      l_text += p_event.key.keysym.unicode; 			  
+	      l_ret = type(l_text);
+	    }
+            break;
+#else      
         case MYKEY_PARENT:
             // B => Cancel
             m_retVal = -1;
@@ -260,6 +313,7 @@ const bool CKeyboard::keyPress(const SDL_Event &p_event)
             l_ret = true;
         default:
             break;
+#endif
     }
     return l_ret;
 }
@@ -267,6 +321,9 @@ const bool CKeyboard::keyPress(const SDL_Event &p_event)
 const bool CKeyboard::keyHold(void)
 {
     bool l_ret(false);
+#if defined(PLATFORM_ZIPIT)
+    /* Remove virtual kbd */
+#else
     switch(m_lastPressed)
     {
         case MYKEY_UP:
@@ -303,9 +360,13 @@ const bool CKeyboard::keyHold(void)
         default:
             break;
     }
+#endif
     return l_ret;
 }
 
+#if defined(PLATFORM_ZIPIT)
+/* Remove virtual kbd */
+#else
 const bool CKeyboard::moveCursorUp(const bool p_loop)
 {
     bool l_ret(false);
@@ -437,11 +498,15 @@ const bool CKeyboard::moveCursorRight(const bool p_loop)
     }
     return l_ret;
 }
+#endif
 
 const bool CKeyboard::type(const std::string &p_text)
 {
     if (p_text.empty())
     {
+#if defined(PLATFORM_ZIPIT)
+        /* Remove virtual kbd */
+#else
         // Append selected character to the input text
         if (m_selected < 39)
         {
@@ -456,6 +521,7 @@ const bool CKeyboard::type(const std::string &p_text)
         }
         else
             std::cerr << "CKeyboard::type : unexpected value: " << m_selected << std::endl;
+#endif
     }
     else
         // Append given text
@@ -473,10 +539,21 @@ const bool CKeyboard::backspace(void)
     bool l_ret(false);
     if (!m_inputText.empty())
     {
+#if defined(PLATFORM_ZIPIT)
+        /* dead key accent mappings for latin15 */
+	int i;
+	for (i = m_inputText.length()-1; i >= 0; i--)
+	  if ((m_inputText[i] & 0xC0) != 0x80)
+	    break;
+	if (i < 0) 
+	  i = 0;
+	m_inputText = m_inputText.substr(0,i);
+#else      
         if (m_inputText.size() >= 2 && utf8Code(m_inputText.at(m_inputText.size() - 2)))
             m_inputText.resize(m_inputText.size() - 2);
         else
             m_inputText.resize(m_inputText.size() - 1);
+#endif
         l_ret = true;
     }
     return l_ret;
